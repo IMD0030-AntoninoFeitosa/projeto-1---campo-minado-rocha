@@ -11,6 +11,7 @@
 const std::string CONFIG_FILE = "config.cfg";
 
 void Main_game(DifficultyRules rules){
+  std::cout << "MineSweeper inicializado! " << std::endl;
   unsigned long seed = 0;
   std::srand(seed);
   std::cout << std::endl;
@@ -25,7 +26,7 @@ void Main_game(DifficultyRules rules){
   
   int game_status = 1;
   
-  while(game_status >= 1){
+  while(game_status == 1){
     std::cout << "\033[0;92m";
     std::cout  << std::endl << "Actions:" << std::endl << "1-Reveal position" << std::endl <<  "2-Put/Remove Red flag position" << std::endl <<  "3-See time counter";
     std::cout  << std::endl << "Action:";
@@ -33,13 +34,13 @@ void Main_game(DifficultyRules rules){
     if(this_action == 1){
       if(first_move == true){
         start = std::chrono::system_clock::now();
-        first_move = false;
       }
       std::cout  << std::endl << "Position X:";
       std::cin >> SweeperX;
       std::cout << std::endl << "Position Y:";
       std::cin >> SweeperY;
-      game_status = act1_change_map(map, rules,SweeperX,SweeperY);
+      game_status = act1_change_map(map, rules,SweeperX,SweeperY,first_move);
+      first_move = false;
     }
     else if(this_action == 2){
       std::cout  << std::endl << "Position of RedFlag X:";
@@ -66,6 +67,12 @@ void Main_game(DifficultyRules rules){
     std::cout << "\033[0;37m";
     show_map(map, rules);
   }
+  if(game_status == 2){
+    std::cout  << std::endl;
+    std::cout << "\033[0;32m";
+    std::cout << "You win!!";
+  }
+  
   
 }
 
