@@ -6,9 +6,9 @@ Projeto para disciplina de Linguagem de Programação 1 IMD0030 2022.1
 
 O trabalho é em dupla (não pode ser individual) e pode ser submetido via SIGAA (arquivo compactado com todo o código-fonte) ou via GitHub Classroom.
 
-Integrante 1: Nome Matrícula:
+Integrante 1: Nome Matrícula: Murilo da Rocha Silva - 20210053490
 
-Integrante 2: Nome Matrícula:
+Integrante 2: Nome Matrícula: Pedro Lucas Gois Costa - 20210056750
 
 ## O Jogo
 
