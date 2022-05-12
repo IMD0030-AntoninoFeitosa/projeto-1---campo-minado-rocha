@@ -13,7 +13,7 @@ DEPS = $(SRCS:.cpp=.d)
 	sed 's,\([^:]*\)\.o[ :]*,\1.o \1.d : ,g' < "$@.$$$$" > "$@"; \
 	rm -f "$@.$$$$"
 
-%.o: %.cpp
+%.o: %.cpp3
 	$(CXX) $(CXXFLAGS) -c "$<" -o "$@"
 
 include $(DEPS)

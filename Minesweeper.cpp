@@ -4,14 +4,17 @@
 #include <utility>
 #include <vector>
 #include <chrono>
+#include <fstream>
 
 #include "Sweeper.h"
 
 void fill_bombs(Map &map,DifficultyRules &rules ) {
-  srand(time(0));// seed do mapa
+  // Seed do mapa
+  srand(time(0));
+  // Remove todas as bombas do mapa
   for (int y = rules.MapSize_Y; y > 0 ; y--) {
     for (int x = 1; x <= rules.MapSize_X ; x++) {
-      map[x][y].has_bomb = false;//remove all bombs
+      map[x][y].has_bomb = false;
     }
   }
   for (int i = 0; i < rules.Bombs_N; i++) {
@@ -22,29 +25,25 @@ void fill_bombs(Map &map,DifficultyRules &rules ) {
         map[randX][randY].has_bomb = true;
         
         //std::cout << "Bomb at: " << randX << " " << randY << std::endl;
-
       }
       else{
         b--;
       }
     }
-        
-      
   }
 }
 
 void near_bombs_map(Map &map, DifficultyRules &rules){
-   for (int y = rules.MapSize_Y; y > 0 ; y--) {
+  // Reseta as bombas proximas de todas as celulas
+  for (int y = rules.MapSize_Y; y > 0 ; y--) {
     for (int x = 1; x <= rules.MapSize_X ; x++) {
-      map[x][y].near_bombs = 0;//remove near bombs
+      map[x][y].near_bombs = 0;
     }
   }
 
-  
+  //Adiciona o numero de bombas proximas a cada célula
   for (int y = rules.MapSize_Y; y > 0 ; y--) {
     for (int x = 1; x <= rules.MapSize_X ; x++) {
-      
-      //map[x][y].is_hidden = false; // revela o mapa debug
       if(y + 1 <=rules.MapSize_Y){
         if(x + 1 <=rules.MapSize_X && map[x+1][y+1].has_bomb){
           map[x][y].near_bombs++;
@@ -53,11 +52,6 @@ void near_bombs_map(Map &map, DifficultyRules &rules){
           map[x][y].near_bombs++;
         }
       }
-
-
-
-
-      
       if(x + 1 <=rules.MapSize_X){
         if(y - 1 >= 1 && map[x+1][y-1].has_bomb){
           map[x][y].near_bombs++;
@@ -66,9 +60,6 @@ void near_bombs_map(Map &map, DifficultyRules &rules){
           map[x][y].near_bombs++;
         }
       }
-
-
-      
       if(y - 1 >= 1){
         if(x - 1 >= 1 && map[x-1][y-1].has_bomb){
           map[x][y].near_bombs++;
@@ -77,8 +68,6 @@ void near_bombs_map(Map &map, DifficultyRules &rules){
           map[x][y].near_bombs++;
         }
       }
-
-      
       if(x - 1 >= 1){
         if(y + 1 <=rules.MapSize_Y && map[x-1][y+1].has_bomb){
           map[x][y].near_bombs++;
@@ -87,83 +76,80 @@ void near_bombs_map(Map &map, DifficultyRules &rules){
           map[x][y].near_bombs++;
         }
       }
+      
+      // debug para revelar o mapa
+      //map[x][y].is_hidden = false; 
     }
   }
 }
 
+// Função que cria o mapa inicial do jogo
+void create_map(Map &map, DifficultyRules &rules) {
+  fill_bombs(map, rules); 
+  near_bombs_map(map, rules);
+}
+
+// Função que revela os campos ao redor
 void adjacent_reveal(Map &map, DifficultyRules &rules, int posX,int posY){
   int x = posX, y = posY;
       
-      if(y + 1 <=rules.MapSize_Y){
-        // Verifica posição superior
-        if(map[x][y+1].is_hidden == true && map[x][y+1].has_bomb == false){
-          map[x][y+1].is_hidden = false;
-          if(map[x][y+1].near_bombs == 0) adjacent_reveal(map,rules,x,y+1);
-        }
-        // Verifica posição superior direita
-        if(x + 1 <=rules.MapSize_X  && map[x+1][y+1].is_hidden == true && map[x+1][y+1].has_bomb == false){
-          map[x+1][y+1].is_hidden = false;
-          if(map[x+1][y+1].near_bombs == 0) adjacent_reveal(map,rules,x+1,y+1);
-        }
-      }
-      
-      if(x + 1 <=rules.MapSize_X){
-        // Verifica posição direita
-        if(map[x+1][y].is_hidden == true && map[x+1][y].has_bomb == false){
-          map[x+1][y].is_hidden = false;
-          if(map[x+1][y].near_bombs == 0) adjacent_reveal(map,rules,x+1,y);
-        }
-        // Verifica posição direta inferior
-        if(y - 1 >= 1 && map[x+1][y-1].is_hidden == true && map[x+1][y-1].has_bomb == false){
-          map[x+1][y-1].is_hidden = false;
-          if(map[x+1][y-1].near_bombs == 0) adjacent_reveal(map,rules,x+1,y-1);
-        }
-        
-      }
-      
-      if(y - 1 >= 1){
-        // Verifica posição inferior
-        if(map[x][y-1].is_hidden == true && map[x][y-1].has_bomb == false){
-          map[x][y-1].is_hidden = false;
-          if(map[x][y-1].near_bombs == 0) adjacent_reveal(map,rules,x,y-1);
-        }
-        // Verifica posição inferior esquerda
-        if(x - 1 >= 1 && map[x-1][y-1].is_hidden == true  && map[x-1][y-1].has_bomb == false){
-          map[x-1][y-1].is_hidden = false;
-          if(map[x-1][y-1].near_bombs == 0) adjacent_reveal(map,rules,x-1,y-1);
-        }
-        
-      }
-
-      
-      if(x - 1 >= 1){
-        // Verifica posição esquerda
-        if(map[x-1][y].is_hidden == true && map[x-1][y].has_bomb == false){
-          map[x-1][y].is_hidden = false;
-          if(map[x-1][y].near_bombs == 0) adjacent_reveal(map,rules,x-1,y);
-        }
-        // Verifica posiçao esquerda superior
-        if(y + 1 <=rules.MapSize_Y && map[x-1][y+1].is_hidden == true && map[x-1][y+1].has_bomb == false){
-          map[x-1][y+1].is_hidden = false;
-          if(map[x-1][y+1].near_bombs == 0) adjacent_reveal(map,rules,x-1,y+1);
-        }
-        
-      }
-    
-}
-
-void create_map(Map &map, DifficultyRules &rules) {
-
+  if(y + 1 <=rules.MapSize_Y){
+    // Verifica posição superior
+    if(map[x][y+1].is_hidden == true && map[x][y+1].has_bomb == false){
+      map[x][y+1].is_hidden = false;
+      if(map[x][y+1].near_bombs == 0) adjacent_reveal(map,rules,x,y+1);
+    }
+    // Verifica posição superior direita
+    if(x + 1 <=rules.MapSize_X  && map[x+1][y+1].is_hidden == true && map[x+1][y+1].has_bomb == false){
+      map[x+1][y+1].is_hidden = false;
+      if(map[x+1][y+1].near_bombs == 0) adjacent_reveal(map,rules,x+1,y+1);
+    }
+  }
   
-  fill_bombs(map, rules);
-  near_bombs_map(map, rules);
+  if(x + 1 <=rules.MapSize_X){
+    // Verifica posição direita
+    if(map[x+1][y].is_hidden == true && map[x+1][y].has_bomb == false){
+      map[x+1][y].is_hidden = false;
+      if(map[x+1][y].near_bombs == 0) adjacent_reveal(map,rules,x+1,y);
+    }
+    // Verifica posição direta inferior
+    if(y - 1 >= 1 && map[x+1][y-1].is_hidden == true && map[x+1][y-1].has_bomb == false){
+      map[x+1][y-1].is_hidden = false;
+      if(map[x+1][y-1].near_bombs == 0) adjacent_reveal(map,rules,x+1,y-1);
+    }
+  }
   
-
+  if(y - 1 >= 1){
+    // Verifica posição inferior
+    if(map[x][y-1].is_hidden == true && map[x][y-1].has_bomb == false){
+      map[x][y-1].is_hidden = false;
+      if(map[x][y-1].near_bombs == 0) adjacent_reveal(map,rules,x,y-1);
+    }
+    // Verifica posição inferior esquerda
+    if(x - 1 >= 1 && map[x-1][y-1].is_hidden == true  && map[x-1][y-1].has_bomb == false){
+      map[x-1][y-1].is_hidden = false;
+      if(map[x-1][y-1].near_bombs == 0) adjacent_reveal(map,rules,x-1,y-1);
+    }
+  }
+  
+  if(x - 1 >= 1){
+    // Verifica posição esquerda
+    if(map[x-1][y].is_hidden == true && map[x-1][y].has_bomb == false){
+      map[x-1][y].is_hidden = false;
+      if(map[x-1][y].near_bombs == 0) adjacent_reveal(map,rules,x-1,y);
+    }
+    // Verifica posiçao esquerda superior
+    if(y + 1 <=rules.MapSize_Y && map[x-1][y+1].is_hidden == true && map[x-1][y+1].has_bomb == false){
+      map[x-1][y+1].is_hidden = false;
+      if(map[x-1][y+1].near_bombs == 0) adjacent_reveal(map,rules,x-1,y+1);
+    }
+  }
 }
 
 void show_map(Map &map, DifficultyRules &rules) {
+  system("clear");
+  std::cout << std::endl << "----------------- MineSweeper -----------------" << std::endl ;
   char c = ' ';
-  
   std::cout << std::endl;
   for (int y = rules.MapSize_Y; y > 0 ; y--) {
     if(y < 10){
@@ -176,16 +162,13 @@ void show_map(Map &map, DifficultyRules &rules) {
     }
     
     for (int x = 1; x <= rules.MapSize_X ; x++) {
-        
       if (map[x][y].has_redFlag == true && map[x][y].is_hidden == false && map[x][y].has_bomb == true) {
         std::cout << "\033[0;31m";
         c = 'B';
-      }
-      else if (map[x][y].has_redFlag) {
+      }else if (map[x][y].has_redFlag) {
         std::cout << "\033[0;31m";
         c = 'R';
-      }
-      else {
+      }else {
         if (map[x][y].is_hidden) {
           std::cout << "\033[0;37m";
           c = '#';
@@ -235,17 +218,11 @@ void show_map(Map &map, DifficultyRules &rules) {
             
               //função para calcular quantas bombas estão perto
           }
-            
         }
       }
-    
       std::cout << ' ' << c << ' '; 
-       
-      
       }
-      
     std::cout << std::endl;
-    
   }
   
   for(int c = 0; c <=rules.MapSize_X;c++ ){
@@ -350,4 +327,3 @@ void act2_red_flag(Map &map, DifficultyRules &rules, int posX,int posY){
   }
   
 }
-

@@ -2,7 +2,9 @@
 #define SWEEPER_H
 
 #include <array>
-
+#include <iostream>
+#include <string>
+#include <vector>
 
 enum class Difficulty { beginner, intermediary, advanced };
 
@@ -23,10 +25,15 @@ struct DifficultyRules {
   int Rule = 0;
 };
 
+struct Record {
+  std::string name;
+  int milliseconds;
+};
 
 
-using Map = std::array<std::array<Cell,31>,31>;//ajustar dinamicamente a quantidade de vetores...
+using Map = std::array<std::array<Cell,31>,31>;
 
+using ListRecords = std::array<Record,10>;
 
 void create_map(Map &map, DifficultyRules &rules);
 
@@ -43,5 +50,6 @@ void check_rules(Map &map, DifficultyRules &rules, int posX,int posY);
 int act1_change_map(Map &map, DifficultyRules &rules, int posX,int posY,bool IsFirstAction);
 
 void act2_red_flag(Map &map, DifficultyRules &rules, int posX,int posY);
+
 
 #endif
