@@ -5,6 +5,8 @@
 #include <vector>
 #include <chrono>
 #include <fstream>
+#include <iomanip>
+#include <string>
 
 #include "Sweeper.h"
 
@@ -83,6 +85,7 @@ void near_bombs_map(Map &map, DifficultyRules &rules){
   }
 }
 
+
 // Função que cria o mapa inicial do jogo
 void create_map(Map &map, DifficultyRules &rules) {
   fill_bombs(map, rules); 
@@ -146,9 +149,133 @@ void adjacent_reveal(Map &map, DifficultyRules &rules, int posX,int posY){
   }
 }
 
+int adjacent_reveal_flag(Map &map, DifficultyRules &rules, int x,int y){
+  bool has_flag = false;
+  if(y + 1 <=rules.MapSize_Y){
+    if(x + 1 <=rules.MapSize_X && map[x+1][y+1].has_redFlag){
+      has_flag = true;
+    }
+    if(map[x][y+1].has_redFlag){
+      has_flag = true;
+    }
+  }
+  if(x + 1 <=rules.MapSize_X){
+    if(y - 1 >= 1 && map[x+1][y-1].has_redFlag){
+      has_flag = true;
+    }
+    if(map[x+1][y].has_redFlag){
+      has_flag = true;
+    }
+  }
+  if(y - 1 >= 1){
+    if(x - 1 >= 1 && map[x-1][y-1].has_redFlag){
+      has_flag = true;
+    }
+    if(map[x][y-1].has_redFlag){
+      has_flag = true;
+    }
+  }
+  if(x - 1 >= 1){
+    if(y + 1 <=rules.MapSize_Y && map[x-1][y+1].has_redFlag){
+      has_flag = true;
+    }
+    if(map[x-1][y].has_redFlag){
+      has_flag = true;
+    }
+  }  
+
+  //caso tenha uma flag perto 
+  if(has_flag == true){
+    bool has_bomb = false;
+    if(y + 1 <=rules.MapSize_Y){
+      if(x + 1 <=rules.MapSize_X && map[x+1][y+1].has_redFlag == false){
+        map[x+1][y+1].is_hidden = false;
+        adjacent_reveal(map,rules,x+1,y+1);
+        if(map[x+1][y+1].has_bomb){
+          has_bomb = true;
+        }
+      }
+      if(map[x][y+1].has_redFlag == false){
+        map[x][y+1].is_hidden = false;
+        adjacent_reveal(map,rules,x,y+1);
+        if(map[x][y+1].has_bomb){
+          has_bomb = true;
+        }
+      }
+    }
+    if(x + 1 <=rules.MapSize_X){
+      if(y - 1 >= 1 && map[x+1][y-1].has_redFlag == false){
+        map[x+1][y-1].is_hidden = false;
+        adjacent_reveal(map,rules,x+1,y-1);
+        if(map[x+1][y-1].has_bomb){
+          has_bomb = true;
+        }
+      }
+      if(map[x+1][y].has_redFlag == false ){
+        map[x+1][y].is_hidden = false;
+        adjacent_reveal(map,rules,x+1,y);
+        if(map[x+1][y].has_bomb){
+          has_bomb = true;
+        }
+      }
+    }
+    if(y - 1 >= 1){
+      if(x - 1 >= 1 && map[x-1][y-1].has_redFlag == false){
+        map[x-1][y-1].is_hidden = false;
+        adjacent_reveal(map,rules,x-1,y-1);
+        if(map[x-1][y-1].has_bomb){
+          has_bomb = true;
+        }
+      }
+      if(map[x][y-1].has_redFlag == false ){
+        map[x][y-1].is_hidden = false;
+        adjacent_reveal(map,rules,x,y-1);
+        if(map[x][y-1].has_bomb){
+          has_bomb = true;
+        }
+      }
+    }
+    if(x - 1 >= 1){
+      if(y + 1 <=rules.MapSize_Y && map[x-1][y+1].has_redFlag == false){
+        map[x-1][y+1].is_hidden = false;
+        adjacent_reveal(map,rules,x-1,y+1);
+        if(map[x-1][y+1].has_bomb){
+          has_bomb = true;
+        }
+      }
+      if(map[x-1][y].has_redFlag == false){
+        map[x-1][y].is_hidden = false;
+        adjacent_reveal(map,rules,x-1,y);
+        if(map[x-1][y].has_bomb){
+          has_bomb = true;
+        }
+      }
+    }
+    if(has_bomb == true){
+    
+    /////////////////////////////////////
+    return 0;
+    }
+    
+  }
+  else{
+    std::cout  << std::endl << "There is no flag near ";
+  }
+  return 1;
+}
+
 void show_map(Map &map, DifficultyRules &rules) {
   system("clear");
-  std::cout << std::endl << "----------------- MineSweeper -----------------" << std::endl ;
+  if(rules.Rule == 0){
+    std::cout << std::endl << "---------- MineSweeper ---------" << std::endl ; 
+  }
+  else if(rules.Rule == 1){
+    std::cout << std::endl << "----------------- MineSweeper -----------------" << std::endl ; 
+  }
+  else if(rules.Rule == 2){
+    std::cout << std::endl << "--------------------------------------- MineSweeper ----------------------------------------" << std::endl ; 
+  }
+  
   char c = ' ';
   std::cout << std::endl;
   for (int y = rules.MapSize_Y; y > 0 ; y--) {
@@ -280,19 +407,24 @@ void check_rules(Map &map, DifficultyRules &rules, int posX,int posY){
 }
 
 int act1_change_map(Map &map, DifficultyRules &rules, int posX,int posY, bool IsFirstAction){
-  if((posX > rules.MapSize_X || posY > rules.MapSize_Y) || (posX < 1 || posY < 1)){
+  if((posX > rules.MapSize_X || posY > rules.MapSize_Y) || (posX < 1 || posY <  1)){
     std::cout  << std::endl << "This position is invalid";
     return 1;
   }
-  if(map[posX][posY].is_hidden == false){
+  else if(map[posX][posY].is_hidden == false && map[posX][posY].near_bombs == 0){
     std::cout  << std::endl << "This position is already visible";
     return 1;
   }
-
+  else if(map[posX][posY].is_hidden == false && map[posX][posY].near_bombs != 0){
+    if(adjacent_reveal_flag(map,rules,posX,posY) == 0){
+      std::cout << "\033[0;31m";
+      std::cout  << std::endl << "Game Over, A bomb was revealed";
+      return 0;
+    }
+  }
   if (IsFirstAction == true){
     check_rules(map, rules, posX, posY);
   }
- 
   map[posX][posY].is_hidden = false;
   
   if(map[posX][posY].has_bomb == true){
@@ -327,3 +459,106 @@ void act2_red_flag(Map &map, DifficultyRules &rules, int posX,int posY){
   }
   
 }
+
+void valid_input_for_a_int(int posX,int posY){
+  if(std::cin.fail() == 1 ){
+    posX = 0;
+    posY = 0;
+    std::cin.clear();
+    std::cin.ignore();
+  }
+}
+
+//record Functions
+bool comparasion(Record &a, Record &b) {
+  return a.milliseconds < b.milliseconds;
+}
+
+void sort_records(std::vector<Record> &recordsVec){
+    std::sort(recordsVec.begin(), recordsVec.end(), comparasion);
+}
+
+void save_record(double time, std::vector<Record> &recordsVec){
+  Record current;
+  current.milliseconds = time;
+  std::cout << "\033[0;31m";
+  std::cout << std::endl << "Enter your name: " << std::endl;
+  std::cin.ignore();
+  std::getline(std::cin,current.name);
+  recordsVec.push_back(current);
+}
+
+void read_recordsFile(std::vector<Record> &recordsVec, DifficultyRules &rules) {
+  int size;
+  std::fstream recordsFile;
+  if(rules.Rule == 0)
+    recordsFile.open(R_B_TXT);
+  else if(rules.Rule == 1)
+    recordsFile.open(R_I_TXT);
+  else if(rules.Rule == 2)
+    recordsFile.open(R_A_TXT);
+  if(recordsFile.is_open()){
+    recordsVec.clear();
+    recordsFile >> size;
+    recordsFile.ignore();
+        
+    for(int i = 0; i < size; i++){
+      Record temp;
+      std::getline(recordsFile, temp.name, '>');
+      recordsFile >> temp.milliseconds;
+      recordsFile.ignore();
+      recordsVec.push_back(temp);
+    }
+  }
+}
+
+void print_records(std::vector<Record> &recordsVec){
+  std::cout << "\033[0;35m";
+  for (int i = 0; i < recordsVec.size(); i++){
+    std::cout << std::left;
+    std::setprecision(3);
+    std::cout << recordsVec[i].name << " -> ";
+    std::cout << recordsVec[i].milliseconds/1000 << "s, ";
+    std::cout <<  recordsVec[i].milliseconds % 1000 << "ms"<< std::endl;
+  }
+}
+
+void write_recordsFile(std::vector<Record> &recordsVec, DifficultyRules &rules){
+    std::ofstream recordsFile;
+
+    if(rules.Rule == 0)
+        recordsFile.open(R_B_TXT);
+    else if(rules.Rule == 1)
+        recordsFile.open(R_I_TXT);
+    else if(rules.Rule == 2)
+        recordsFile.open(R_A_TXT);
+
+    if(recordsFile.is_open()){
+        recordsFile << recordsVec.size() << std::endl;
+        for(int i = 0; i < recordsVec.size(); i++){
+            recordsFile << recordsVec[i].name << ">" << recordsVec[i].milliseconds << std::endl;
+        }
+        recordsFile.close();
+    }
+}
+
+
+
+
+
+
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
+

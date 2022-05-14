@@ -14,7 +14,7 @@ const std::string CONFIG_FILE = "config.cfg";
 void Main_game(DifficultyRules rules) {
   
   std::vector<Record> records;
-  std::ofstream myfile;
+  read_recordsFile(records,rules);
   
   unsigned long seed = 0;
   std::srand(seed);
@@ -42,9 +42,16 @@ void Main_game(DifficultyRules rules) {
               << "3-See time counter";
     std::cout << std::endl << "Action:";
     std::cin >> this_action;
+    //valid input
+    valid_input_for_a_int(this_action,this_action);
+    //valid input
     if (this_action == 1) {
       std::cout << std::endl << "Position X:";
       std::cin >> SweeperX;
+      //valid input
+      valid_input_for_a_int(SweeperX,SweeperY);
+      //valid input
+      
       //debug cheat code
       if (SweeperX == 42 && first_move == false) {
         game_status = 2;
@@ -53,7 +60,12 @@ void Main_game(DifficultyRules rules) {
       //debug cheat code
       std::cout << std::endl << "Position Y:";
       std::cin >> SweeperY;
+      //valid input
+      valid_input_for_a_int(SweeperX,SweeperY);
+      //valid input
+      
       game_status = act1_change_map(map, rules, SweeperX, SweeperY, first_move);
+      
       if (first_move == true) {
         start = std::chrono::system_clock::now();
       }
@@ -62,8 +74,14 @@ void Main_game(DifficultyRules rules) {
     } else if (this_action == 2) {
       std::cout << std::endl << "Position of RedFlag X:";
       std::cin >> SweeperX;
+      //valid input
+      valid_input_for_a_int(SweeperX,SweeperY);
+      //valid input
       std::cout << std::endl << "Position of RedFlag Y:";
       std::cin >> SweeperY;
+      //valid input
+      valid_input_for_a_int(SweeperX,SweeperY);
+      //valid input
       act2_red_flag(map, rules, SweeperX, SweeperY);
     } else if (this_action == 3) {
       if (first_move == true) {
@@ -88,20 +106,23 @@ void Main_game(DifficultyRules rules) {
     end = std::chrono::system_clock::now();
     total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "\033[0;32m";
-    std::cout << "You win, your time is: " << total_time << " milleseconds";
-    std::cout << std::endl << "Enter your name:";
-    std::cin >> win_player;
-    //listar recordes
-    //myfile.open ("records.txt");
-    //
+    std::cout << "You win, your time is: " <<  std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s, ";
+    std::cout <<  total_time % 1000 << "ms";
+    save_record(total_time,records);
+    sort_records(records);
+    write_recordsFile(records,rules);
+    print_records(records);
     
     }
+  
 }
 
 void show_usage(void) {
   std::cout << "Usage: game [option]" << std::endl;
   std::cout << "Option:" << std::endl;
   std::cout << " -h or --help                  Display this information."
+            << std::endl;
+  std::cout << " -r or --records               Display the records."
             << std::endl;
   std::cout << " -d or --difficulty <option>   Change the game difficulty for "
                "<option>"
@@ -158,9 +179,31 @@ Difficulty load_difficulty(const std::string config_file) {
 }
 
 int main(int argc, char **argv) {
+  Difficulty level = load_difficulty(CONFIG_FILE);
+  DifficultyRules rules;
+  
+  if (Difficulty::beginner == level) {
+    rules.Bombs_N = rules.MapSize_X = rules.MapSize_Y = 10;
+    rules.Rule = 0;
+  } else if (Difficulty::intermediary == level) {
+    rules.MapSize_X = rules.MapSize_Y = 15;
+    rules.Bombs_N = 40;
+    rules.Rule = 1;
+  } else if (Difficulty::advanced == level) {
+    rules.MapSize_X = 30;
+    rules.MapSize_Y = 15;
+    rules.Bombs_N = 100;
+    rules.Rule = 2;
+  }
+  
   if (argc > 1) {
     std::string arg = argv[1];
-    if (arg == "-h" || arg == "--help") {
+    if (arg == "-r" || arg == "--records") {
+      std::vector<Record> records;
+      read_recordsFile(records,rules);
+      print_records(records);
+    }
+    else if (arg == "-h" || arg == "--help") {
       show_usage();
     } else if (arg == "-d" || arg == "--difficulty") {
       if (argc > 2) {
@@ -180,29 +223,13 @@ int main(int argc, char **argv) {
                   << std::endl;
         show_usage();
       }
-    } else {
+    }
+    else {
       std::cout << "Unknown argument: " << argv[1] << std::endl;
       show_usage();
     }
   } else {
-    Difficulty level = load_difficulty(CONFIG_FILE);
-    DifficultyRules rules;
-
-    if (Difficulty::beginner == level) {
-      rules.Bombs_N = rules.MapSize_X = rules.MapSize_Y = 10;
-      rules.Rule = 0;
-    } else if (Difficulty::intermediary == level) {
-      rules.MapSize_X = rules.MapSize_Y = 15;
-      rules.Bombs_N = 40;
-      rules.Rule = 1;
-    } else if (Difficulty::advanced == level) {
-      rules.MapSize_X = 15;
-      rules.MapSize_Y = 30;
-      rules.Bombs_N = 100;
-      rules.Rule = 2;
-    }
     Main_game(rules);
   }
-
   return 0;
 }
